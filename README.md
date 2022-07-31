@@ -13,6 +13,7 @@ To create a node named master, run the following multipass launch command and pa
 Netcat (nc) command is a command-line utility for reading and writing data between two computer networks. The communication happens using either TCP or UDP.
 
 # Launching multipass  infrastructure 
+
 multipass launch -c 4 -m 4G -d 20G -n k3s-master  20.04
 multipass launch -c 4 -m 4G -d 20G -n k3s-worker-1 20.04
 multipass launch -c 4 -m 4G -d 20G -n k3s-worker-2 20.04
@@ -79,7 +80,6 @@ sudo critical ps
 # Check cluster name in  k3s 
  sudo k3s  kubectl config current-context
  sudo k3s kubectl config get-contexts
-
 
  # modify the current namespace 
 Sudo k3s kubectl config set-context --cluster=cluster1  --user=<user1> --namespace=<namespace>
