@@ -34,13 +34,30 @@ multipass info k3s-master | grep IPv4 | awk '{print $2}'
  done
 
 {
-multipass exec k3s-worker-1 -- \bash -c "curl -sfL https://get.k3s.io | K3S_URL=\"https://192.168.64.36:6443\" K3S_TOKEN=\"K102c0d731a99a46c9942a39ceb43898ca8e3b88afcc31a56f1e6d495d6ad5b4ff5::server:2608cc16d0b61db05d988fc6e5d7de9d\" sh -"
+multipass exec primary  -- \bash -c "curl -sfL https://get.k3s.io | K3S_URL=\"https://192.168.64.36:6443\" K3S_TOKEN=\"K102c0d731a99a46c9942a39ceb43898ca8e3b88afcc31a56f1e6d495d6ad5b4ff5::server:2608cc16d0b61db05d988fc6e5d7de9d\" sh -"
 multipass exec k3s-worker-2 -- \bash -c "curl -sfL https://get.k3s.io | K3S_URL=\"https://192.168.64.36:6443\" K3S_TOKEN=\"K102c0d731a99a46c9942a39ceb43898ca8e3b88afcc31a56f1e6d495d6ad5b4ff5::server:2608cc16d0b61db05d988fc6e5d7de9d\" sh -"
 }
 
 
+helm install --namespace sysdig-agent sysdig-agent --set sysdig.accessKey=3bfc605e-a6b2-43de-838d-256d790e690b --set collectorSettings.collectorHost=https://us2.app.sysdig.com/  --set collectorSettings.collectorPort=443 sysdig/agent
+
+
 # Verify your cluster- ssh into the shell 
 multipass exec k3s-master -- bash
+
+# Leverage the KUBECONFIG environment variable:
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+kubectl get pods --all-namespaces
+helm ls --all-namespaces
+
+Or specify the location of the kubeconfig file in the command:
+kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get pods --all-namespaces
+helm --kubeconfig /etc/rancher/k3s/k3s.yaml ls --all-namespaces
+
+
+To overcome from  Error: INSTALLATION FAILED: Kubernetes cluster unreachable: Get “http://localhost:8080/version”: dial tcp [::1]:8080: connect: connection refused
+Please visit https://rancher.com/docs/k3s/latest/en/cluster-access/
+
 
 # Verify K3s Installation
 systemctl status k3s
@@ -51,11 +68,18 @@ k3s -v
 # list of  all current namespace 
 sudo k3s kubectl get namespace
 
+# list of pods running  in the given namespace
+sudo k3s kubectl get pods --namespace=default
+
+# list of supported Kubernetes api-version 
+
 # containers are up and running in k3s instance 
-sudo crictl ps
+sudo critical ps
 
 # Check cluster name in  k3s 
- sudo kubectl config current-context
+ sudo k3s  kubectl config current-context
+ sudo k3s kubectl config get-contexts
+
 
  # modify the current namespace 
 Sudo k3s kubectl config set-context --cluster=cluster1  --user=<user1> --namespace=<namespace>
@@ -80,9 +104,11 @@ sudo k3s  kubectl get pods -o wide
   
 
 
+
+
 Clean up your cluster
-1. Open a new terminal window (on the host), and then use the multipass stop command to stop your nodes: multipass stop k3s-master k3s-worker-1 k3s-worker-2
-2. Delete your instances with multipass delete k3s-master k3s-worker-1 k3s-worker-2
+1. Open a new terminal window (on the host), and then use the multipass stop command to stop your nodes: multipass stop primary   k3s-master k3s-worker-1 k3s-worker-2
+2. Delete your instances with multipass delete primary k3s-master k3s-worker-1 k3s-worker-2
 3. Permanently delete your instances by entering: multipass purge
 4. Use the multipass list command to verify that the instances were deleted:  multipass list
 5.  No instances found 
